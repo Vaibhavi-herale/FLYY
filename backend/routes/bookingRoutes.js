@@ -3,6 +3,7 @@ const express = require('express');
 const { createBooking, cancelBooking, getBooking, lockSpecificSeats, getSeatAvailability } = require('../controllers/bookingController');
 const { protectUser } = require('../middleware/authMiddleware');
 const router = express.Router();
+
 // Apply auth middleware to all booking routes
 router.use(protectUser);
 // POST /api/bookings to create a booking
@@ -15,4 +16,5 @@ router.post('/flights/:flightId/seats/lock', lockSpecificSeats);
 router.post('/cancel', cancelBooking);
 // GET /api/bookings/:pnr to get booking details
 router.get('/:pnr', getBooking);
+
 module.exports = router;

@@ -3,6 +3,7 @@ const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 export default function Admin() {
     const [flights, setFlights] = useState([]);
     const [bookings, setBookings] = useState([]);
+    const [refunds, setRefunds] = useState([]);
     const [activeTab, setActiveTab] = useState('flights');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loginParams, setLoginParams] = useState({ username: '', password: '' });
@@ -35,6 +36,7 @@ export default function Admin() {
             setIsAuthenticated(true);
             fetchFlights(token);
             fetchBookings(token);
+            fetchRefunds(token);
             fetchUsers(token);
         }
     }, []);
@@ -53,6 +55,7 @@ export default function Admin() {
                 setIsAuthenticated(true);
                 fetchFlights(data.token);
                 fetchBookings(data.token);
+                fetchRefunds(data.token);
                 fetchUsers(data.token);
             } else {
                 alert(data.message || 'Login failed');
@@ -67,6 +70,7 @@ export default function Admin() {
         setIsAuthenticated(false);
         setFlights([]);
         setBookings([]);
+        setRefunds([]);
         setUsers([]);
         setSelectedUserStats(null);
     };
@@ -100,6 +104,21 @@ export default function Admin() {
             }
         } catch (error) {
             console.error("Error fetching bookings:", error);
+        }
+    };
+
+    const fetchRefunds = async (token = localStorage.getItem('adminToken')) => {
+        if (!token) return;
+        try {
+            const res = await fetch(`${API}/api/admin/refunds`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setRefunds(data.refunds);
+            }
+        } catch (error) {
+            console.error("Error fetching refunds:", error);
         }
     };
 
@@ -185,6 +204,76 @@ export default function Admin() {
             }
         } catch (error) {
             console.error("Error deleting user:", error);
+        }
+    };
+
+    const handleApproveRefund = async (refundId) => {
+        try {
+            const res = await fetch(`${API}/api/refunds/${refundId}/approve`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({ notes: 'Approved by admin' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                fetchRefunds();
+                alert('Refund approved successfully');
+            } else {
+                alert(data.message || 'Approval failed');
+            }
+        } catch (error) {
+            console.error("Error approving refund:", error);
+            alert('Approval failed');
+        }
+    };
+
+    const handleRejectRefund = async (refundId) => {
+        try {
+            const reason = prompt('Enter rejection reason:');
+            if (!reason) return;
+            const res = await fetch(`${API}/api/refunds/${refundId}/reject`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({ reason })
+            });
+            const data = await res.json();
+            if (data.success) {
+                fetchRefunds();
+                alert('Refund rejected successfully');
+            } else {
+                alert(data.message || 'Rejection failed');
+            }
+        } catch (error) {
+            console.error("Error rejecting refund:", error);
+            alert('Rejection failed');
+        }
+    };
+
+    const handleProcessRefund = async (refundId) => {
+        try {
+            if (!window.confirm("Are you sure you want to process this refund? This will call the Dodo Payments API.")) return;
+            const res = await fetch(`${API}/api/refunds/${refundId}/process`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                }
+            });
+            const data = await res.json();
+            if (data.success) {
+                fetchRefunds();
+                alert('Refund processed successfully');
+            } else {
+                alert(data.message || 'Processing failed');
+            }
+        } catch (error) {
+            console.error("Error processing refund:", error);
+            alert('Processing failed');
         }
     };
 
@@ -344,6 +433,12 @@ export default function Admin() {
                         className={`py-2 px-6 font-medium text-lg transition ${activeTab === 'bookings' ? 'text-[#00e5ff] border-b-2 border-[#00e5ff] bg-[#00e5ff]/10 shadow-[0_0_15px_rgba(0,229,255,0.1)_inset]' : 'text-[#00e5ff]/50 hover:text-[#00e5ff] hover:bg-[#00e5ff]/5'}`}
                     >
                         View Bookings
+                    </button>
+                    <button
+                        onClick={() => { setActiveTab('refunds'); fetchRefunds(); }}
+                        className={`py-2 px-6 font-medium text-lg transition ${activeTab === 'refunds' ? 'text-[#00e5ff] border-b-2 border-[#00e5ff] bg-[#00e5ff]/10 shadow-[0_0_15px_rgba(0,229,255,0.1)_inset]' : 'text-[#00e5ff]/50 hover:text-[#00e5ff] hover:bg-[#00e5ff]/5'}`}
+                    >
+                        Manage Refunds
                     </button>
                     <button
                         onClick={() => { setActiveTab('users'); fetchUsers(); }}
@@ -595,6 +690,102 @@ export default function Admin() {
                             {bookings.length === 0 && (
                                 <div className="py-12 text-center text-[#00e5ff]/40 bg-[#050B14]/30">
                                     <p className="text-lg font-medium text-[#00e5ff]/60 tracking-widest">NO_RECORDS_FOUND</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'refunds' && (
+                    <div className="bg-[#0A121F]/80 backdrop-blur-xl rounded-2xl shadow-[0_0_20px_rgba(0,229,255,0.05)] border border-[#00e5ff]/30 overflow-hidden">
+                        <div className="px-6 py-5 border-b border-[#00e5ff]/20 bg-[#050B14]/50 flex justify-between items-center">
+                            <h2 className="text-xl font-semibold text-[#00e5ff] tracking-wider">DATABASE_INDEX // REFUNDS</h2>
+                            <span className="bg-[#00e5ff]/10 text-[#00e5ff] border border-[#00e5ff]/30 text-xs px-2.5 py-1 rounded-full font-medium">{refunds.length} RECORDS</span>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-[#00e5ff]/20">
+                                <thead className="bg-[#050B14]/50 text-[#00e5ff]/70">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Refund ID</th>
+                                        <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Booking ID</th>
+                                        <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Amount</th>
+                                        <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                                        <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Reason</th>
+                                        <th scope="col" className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[#00e5ff]/10">
+                                    {refunds.map(r => (
+                                        <tr key={r._id} className="hover:bg-[#00e5ff]/5 transition">
+                                            <td className="px-6 py-5 whitespace-nowrap">
+                                                <div className="text-sm font-bold text-[#00e5ff] bg-[#00e5ff]/10 px-2 py-1 rounded inline-block tracking-wider border border-[#00e5ff]/30">{r._id.substring(0, 8)}</div>
+                                                <div className="text-xs text-[#00e5ff]/50 mt-2">{new Date(r.requestedAt).toLocaleDateString()}</div>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <div className="text-sm font-semibold text-gray-200 mb-1">{r.bookingId?.pnr || 'N/A'}</div>
+                                                <div className="text-xs text-[#00e5ff]/60">{r.bookingId?._id?.substring(0, 8) || 'N/A'}</div>
+                                            </td>
+                                            <td className="px-6 py-5 whitespace-nowrap">
+                                                <div className="text-sm font-bold text-[#00e5ff]">
+                                                    ${r.refundAmount}
+                                                </div>
+                                                <div className="text-xs text-[#00e5ff]/50 mt-1">{r.refundPercentage}% of ${r.originalAmount}</div>
+                                            </td>
+                                            <td className="px-6 py-5 whitespace-nowrap">
+                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${
+                                                    r.status === 'pending' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                                                    r.status === 'approved' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                                    r.status === 'processed' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                    r.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                    'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                                }`}>
+                                                    {r.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-5 whitespace-nowrap">
+                                                <div className="text-sm text-gray-300">{r.reason.replace('_', ' ')}</div>
+                                                {r.notes && <div className="text-xs text-[#00e5ff]/50 mt-1">{r.notes}</div>}
+                                            </td>
+                                            <td className="px-6 py-5 whitespace-nowrap text-center text-sm font-medium">
+                                                <div className="flex justify-center space-x-2">
+                                                    {r.status === 'pending' && (
+                                                        <>
+                                                            <button 
+                                                                onClick={() => handleApproveRefund(r._id)}
+                                                                className="text-green-400 hover:text-green-300 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 px-3 py-1.5 rounded transition"
+                                                            >
+                                                                Approve
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleRejectRefund(r._id)}
+                                                                className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 px-3 py-1.5 rounded transition"
+                                                            >
+                                                                Reject
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    {r.status === 'approved' && (
+                                                        <button 
+                                                            onClick={() => handleProcessRefund(r._id)}
+                                                            className="text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 rounded transition"
+                                                        >
+                                                            Process
+                                                        </button>
+                                                    )}
+                                                    {r.status === 'processed' && r.transactionId && (
+                                                        <div className="text-xs text-[#00e5ff]/60 font-mono">{r.transactionId.substring(0, 12)}...</div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            {refunds.length === 0 && (
+                                <div className="py-12 text-center text-[#00e5ff]/40 bg-[#050B14]/30">
+                                    <p className="text-lg font-medium text-[#00e5ff]/60 tracking-widest">NO_REFUNDS_FOUND</p>
                                 </div>
                             )}
                         </div>

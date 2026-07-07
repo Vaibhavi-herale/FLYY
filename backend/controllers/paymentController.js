@@ -25,6 +25,11 @@ exports.createCheckoutSession = async (req, res) => {
             metadata: { booking_id: bookingRef }
         });
 
+        const Booking = require('../models/Booking');
+        await Booking.findByIdAndUpdate(bookingRef, {
+            $set: { 'payment.dodoPaymentId': payment.payment_id || payment.id }
+        });
+
         res.status(200).json({
             success: true,
             message: 'Checkout session created',

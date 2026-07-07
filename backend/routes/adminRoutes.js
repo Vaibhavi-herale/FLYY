@@ -12,6 +12,8 @@ router.delete('/flight/:id', protectAdmin, admin.deleteFlight);
 
 router.get('/bookings', protectAdmin, admin.getBookings);
 
+router.get('/refunds', protectAdmin, admin.getAllRefunds);
+
 router.get('/users', protectAdmin, admin.getAllUsers);
 router.patch('/users/:userId/toggle-status', protectAdmin, admin.toggleUserStatus);
 router.get('/users/:userId/booking-stats', protectAdmin, admin.getUserBookingStats);

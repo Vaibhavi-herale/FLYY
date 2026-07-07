@@ -2,6 +2,7 @@ const Booking = require('../models/Booking');
 const Flight = require('../models/Flight');
 const { v4: uuidv4 } = require('uuid');
 const emailService = require('../services/emailService');
+const refundService = require('../services/refundService');
 exports.lockSeats = async (req, res) => {
     try {
         const { flightId, cabinClass, count } = req.body;
@@ -246,7 +247,7 @@ exports.createBooking = async (req, res) => {
 };
 exports.cancelBooking = async (req, res) => {
     try {
-        const { pnr, email, passengerEmails } = req.body;
+        const { pnr, email, passengerEmails, reason = 'passenger_request', notes = '' } = req.body;
         const booking = await Booking.findOne({
             pnr,
             $or: [
@@ -297,14 +298,27 @@ exports.cancelBooking = async (req, res) => {
             await flight.save();
         }
         await booking.save();
-        // Calculate refund
-        const refundPerPassenger = flight ? flight.prices[cabinClass] : 0;
-        const totalRefund = refundPerPassenger * cancelledCount;
+        
+        // Call refundService.requestRefund() to create refund document and send acknowledgement email
+        let refund = null;
+        if (booking.bookingStatus === 'Cancelled' || booking.bookingStatus === 'Partially Cancelled') {
+            try {
+                refund = await refundService.requestRefund(booking._id, reason, notes, cancelledCount);
+            } catch (refundError) {
+                console.error('Refund request failed:', refundError.message);
+                // Continue with cancellation even if refund fails
+            }
+        }
+        
         res.status(200).json({
             success: true,
-            message: 'Cancellation successful',
+            message: 'Cancellation successful. Refund initiated and pending admin approval.',
             cancelledPassengersCount: cancelledCount,
-            refundAmount: totalRefund,
+            refund: refund ? {
+                refundId: refund._id,
+                refundAmount: refund.refundAmount,
+                refundStatus: refund.status
+            } : null,
             bookingStatus: booking.bookingStatus
         });
     } catch (error) {

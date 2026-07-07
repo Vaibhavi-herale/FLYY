@@ -1,6 +1,7 @@
 const Flight = require('../models/Flight');
 const Booking = require('../models/Booking');
 const User = require('../models/User');
+const Refund = require('../models/Refund');
 const jwt = require('jsonwebtoken');
 
 // ADMIN LOGIN
@@ -172,6 +173,18 @@ exports.deleteUser = async (req, res) => {
     // Update user's bookings to unlinked guest bookings
     await Booking.updateMany({ userId }, { $unset: { userId: "" } });
     res.json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET ALL REFUNDS
+exports.getAllRefunds = async (req, res) => {
+  try {
+    const refunds = await Refund.find()
+      .populate('bookingId')
+      .sort({ requestedAt: -1 });
+    res.json({ success: true, refunds });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

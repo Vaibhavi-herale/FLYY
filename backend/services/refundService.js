@@ -8,14 +8,17 @@ class RefundService {
     /**
      * Request refund for booking
      */
-    async requestRefund(bookingId, reason, notes) {
+    async requestRefund(bookingId, reason, notes, cancelledCount) {
         try {
             const booking = await Booking.findById(bookingId).populate('flight');
             if (!booking) throw new Error('Booking not found');
-            if (booking.bookingStatus === 'Cancelled') throw new Error('Booking already cancelled');
+            
+            const existingRefund = await Refund.findOne({ bookingId, status: 'pending' });
+            if (existingRefund) throw new Error('A pending refund request already exists for this booking. Please process it first.');
 
             // Calculate refund amount
-            const refundData = await this.calculateRefund(booking, reason);
+            const actualCancelledCount = cancelledCount || booking.passengers.length;
+            const refundData = await this.calculateRefund(booking, reason, actualCancelledCount);
 
             const refund = await Refund.create({
                 bookingId,
@@ -51,7 +54,7 @@ class RefundService {
     /**
      * Calculate refund amount based on policy and time
      */
-    async calculateRefund(booking, reason) {
+    async calculateRefund(booking, reason, cancelledCount) {
         try {
             const now = new Date();
             const departureTime = new Date(booking.flight.departureDate);
@@ -82,7 +85,10 @@ class RefundService {
                 }
             }
 
-            const refundAmount = (booking.totalAmount * percentage) / 100 - processingFee;
+            const originalPassengerCount = booking.passengers.length;
+            const amountForCancelled = (booking.totalAmount / originalPassengerCount) * cancelledCount;
+            
+            const refundAmount = (amountForCancelled * percentage) / 100 - (processingFee * cancelledCount);
 
             return {
                 refundAmount: Math.max(0, refundAmount),
@@ -169,13 +175,26 @@ class RefundService {
     try {
         const refund = await Refund.findById(refundId);
         if (!refund) throw new Error('Refund not found');
-        if (refund.status !== 'approved') throw new Error('Only approved refunds can be processed');
+        if (refund.status !== 'approved' && refund.status !== 'failed') {
+            throw new Error('Only approved or previously failed refunds can be processed');
+        }
 
         const booking = await Booking.findById(refund.bookingId);
         if (!booking) throw new Error('Booking not found');
 
         const dodoPaymentId = booking.payment?.dodoPaymentId;
-        if (!dodoPaymentId) throw new Error('No Dodo payment ID on this booking. Was payment completed via webhook?');
+        if (!dodoPaymentId) {
+            // Bypass Dodo API for missing payment IDs (manual refund)
+            refund.status = 'processed';
+            refund.processedAt = new Date();
+            refund.transactionId = 'manual_refund_no_id';
+            refund.notes = (refund.notes ? refund.notes + ' | ' : '') + 'Processed manually (missing Dodo payment ID).';
+            await refund.save();
+
+            await Booking.findByIdAndUpdate(refund.bookingId, { bookingStatus: 'Refunded' });
+            await emailNotifications.sendRefundProcessedEmail(booking.contactEmail, refund);
+            return refund;
+        }
 
         // Real Dodo refund API call
         const DodoPayments = require('dodopayments');
@@ -184,15 +203,26 @@ class RefundService {
             environment: 'test_mode'
         });
 
+        if (refund.refundAmount <= 0) {
+            refund.status = 'processed';
+            refund.processedAt = new Date();
+            refund.transactionId = 'zero_amount_refund';
+            refund.notes = (refund.notes ? refund.notes + ' | ' : '') + 'Processed automatically (zero refund amount due to policy).';
+            await refund.save();
+
+            await Booking.findByIdAndUpdate(refund.bookingId, { bookingStatus: 'Refunded' });
+            await emailNotifications.sendRefundProcessedEmail(booking.contactEmail, refund);
+            return refund;
+        }
+
         const dodoRefund = await dodo.refunds.create({
             payment_id: dodoPaymentId,
+            amount: Math.round(refund.refundAmount * 100),
             reason: refund.reason,
             metadata: {
                 refund_id: refund._id.toString(),
                 booking_id: refund.bookingId.toString()
             }
-            // No 'items' field = full refund of the payment
-            // If you want partial: items: [{ item_id: DODO_PRODUCT_ID, amount: refund.refundAmount * 100 }]
         });
 
         // dodoRefund.status will be 'pending' or 'succeeded'
