@@ -127,10 +127,15 @@ const App = () => {
     if (urlParams.get('payment') === 'success') {
       const bookingId = urlParams.get('booking_id');
       const chatId = urlParams.get('chat_id');
-      
+      // Dodo appends payment_id to the return_url — capture it so we can save it to DB
+      const paymentId = urlParams.get('payment_id');
+
       if (bookingId) {
-          fetch(`${API}/api/webhooks/confirm/${bookingId}`, { method: 'POST' })
-            .catch(console.error);
+          fetch(`${API}/api/webhooks/confirm/${bookingId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paymentId })
+          }).catch(console.error);
       }
 
       const successMsg = {
@@ -507,30 +512,30 @@ const App = () => {
   const groupedChats = getGroupedChats();
 
   return (
-    <div className="flex h-screen bg-[#050B14] font-sans overflow-hidden text-[#e0e0e0] relative selection:bg-[#00e5ff]/30">
+    <div className="flex h-screen bg-[#0f172a] font-sans pro-gradient-bg overflow-hidden text-[#ffffff] relative selection:bg-[#3b82f6]/30">
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && window.innerWidth < 1024 && (
-        <div className="fixed inset-0 bg-black/40 z-40 transition-opacity" onClick={() => setIsSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-[#3b82f6]/30 z-40 transition-opacity" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed lg:static inset-y-0 left-0 z-50 w-[260px] bg-[#03060a] border-r border-[#00e5ff]/20 text-white flex flex-col transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <div className={`fixed lg:static inset-y-0 left-0 z-50 w-[260px] bg-[#f1f5f9] border-r border-[#1e40af]/20 text-[#1e40af] flex flex-col transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Sidebar Header */}
         <div className="p-3 flex flex-col gap-3">
-          <button onClick={startNewChat} className="flex items-center justify-between bg-[#00e5ff]/10 hover:bg-[#00e5ff]/20 text-[#00e5ff] font-medium py-2 px-3 rounded-lg transition border border-[#00e5ff]/50 shadow-[0_0_10px_rgba(0,229,255,0.2)] w-full group">
+          <button onClick={startNewChat} className="flex items-center justify-between bg-[#1e40af] hover:bg-[#1e40af]/90 text-white font-medium py-2 px-3 rounded-lg transition border border-[#1e40af]/50 shadow-[0_0_10px_rgba(30,58,138,0.2)] w-full group">
             <span className="flex items-center gap-2"><Plus size={16} /> New Chat</span>
             <Edit3 size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
 
           {/* Chats List Search placed directly at the top of the chat area for better UX */}
           <div className="relative mt-2">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#00e5ff]/60" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#1e40af]/60" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search Chats"
-              className="w-full bg-[#0a121f] border border-[#00e5ff]/20 text-sm text-[#00e5ff] rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-[#00e5ff]/60 focus:shadow-[0_0_8px_rgba(0,229,255,0.3)] placeholder-[#00e5ff]/40 transition"
+              className="w-full bg-[#f1f5f9] border border-[#1e40af]/20 text-sm text-[#1e40af] rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-[#1e40af]/60 focus:shadow-[0_0_8px_rgba(30,58,138,0.3)] placeholder-[#1e3a8a]/40 transition"
             />
           </div>
         </div>
@@ -538,42 +543,42 @@ const App = () => {
         {/* Chats List */}
         <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-3">
           <div className="px-2 pt-2">
-            <h2 className="text-xs font-semibold text-gray-500 mb-1">Your chats {'>'}</h2>
+            <h2 className="text-xs font-semibold text-[#1e40af] mb-1">Your chats {'>'}</h2>
           </div>
 
           {Object.entries(groupedChats).map(([groupName, groupChats]) => (
             groupChats.length > 0 && (
               <div key={groupName} className="mb-4">
-                <h3 className="text-[11px] font-semibold text-gray-500 mb-1 px-2">{groupName}</h3>
+                <h3 className="text-[11px] font-semibold text-[#1e40af] mb-1 px-2">{groupName}</h3>
                 <div className="space-y-0.5">
                   {groupChats.map(chat => (
                     <div
                       key={chat._id}
                       onClick={() => loadChat(chat._id)}
-                      className={`group relative flex justify-between p-2 rounded-md cursor-pointer transition ${openMenuId === chat._id ? 'z-50' : 'z-0'} ${activeChatId === chat._id ? 'bg-[#00e5ff]/10 text-[#00e5ff] border border-[#00e5ff]/20' : 'hover:bg-[#00e5ff]/5 text-gray-300 hover:text-[#00e5ff] border border-transparent'}`}
+                      className={`group relative flex justify-between p-2 rounded-md cursor-pointer transition ${openMenuId === chat._id ? 'z-50' : 'z-0'} ${activeChatId === chat._id ? 'bg-[#1e40af]/10 text-[#1e40af] border border-[#1e40af]/20' : 'hover:bg-[#1e40af]/5 text-[#1e40af] hover:text-[#1e40af] border border-transparent'}`}
                     >
                       <div className="flex flex-col overflow-hidden w-full pr-6">
                         <span className="truncate text-[13px] font-medium leading-tight">{chat.title}</span>
-                        <span className="text-[10px] text-gray-500 mt-0.5 flex items-center justify-between">
+                        <span className="text-[10px] text-[#1e40af]/70 mt-0.5 flex items-center justify-between">
                           <span>{new Date(chat.createdAt).toLocaleDateString()}</span>
                         </span>
                       </div>
 
                       <div className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center ${activeChatId === chat._id || openMenuId === chat._id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
-                        <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat._id ? null : chat._id); }} className="p-1 text-[#00e5ff]/70 hover:text-[#00e5ff] rounded-md transition hover:bg-[#00e5ff]/10" title="Options">
+                        <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat._id ? null : chat._id); }} className="p-1 text-[#1e40af]/70 hover:text-[#1e40af] rounded-md transition hover:bg-[#1e40af]/10" title="Options">
                           <MoreHorizontal size={15} />
                         </button>
 
                         {openMenuId === chat._id && (
                           <div
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute right-0 top-7 w-40 bg-[#07111f] border border-[#00e5ff]/30 rounded-lg shadow-[0_12px_28px_rgba(0,0,0,0.65)] z-[80] overflow-hidden text-sm text-gray-200"
+                            className="absolute right-0 top-7 w-40 bg-[#f1f5f9] border border-[#1e40af]/30 shadow-lg rounded-lg shadow-[0_12px_28px_rgba(135,206,235,0.18)] z-[80] overflow-hidden text-sm text-[#ffffff]"
                           >
                             <div className="flex flex-col py-1">
-                              <button onClick={(e) => { setOpenMenuId(null); renameChat(e, chat._id, chat.title); }} className="flex items-center gap-2 w-full text-left px-3 py-2 text-gray-200 hover:bg-[#00e5ff]/10 hover:text-[#00e5ff] transition">
+                              <button onClick={(e) => { setOpenMenuId(null); renameChat(e, chat._id, chat.title); }} className="flex items-center gap-2 w-full text-left px-3 py-2 text-[#1e40af] hover:bg-[#1e40af]/10 hover:text-[#1e40af] transition">
                                 <Edit3 size={14} /> Rename
                               </button>
-                              <button onClick={(e) => { setOpenMenuId(null); deleteChat(e, chat._id); }} className="flex items-center gap-2 w-full text-left px-3 py-2 text-red-300 hover:bg-red-500/10 hover:text-red-200 transition">
+                              <button onClick={(e) => { setOpenMenuId(null); deleteChat(e, chat._id); }} className="flex items-center gap-2 w-full text-left px-3 py-2 text-red-600 hover:bg-red-500/10 hover:text-red-700 transition">
                                 <Trash2 size={14} /> Delete
                               </button>
                             </div>
@@ -587,48 +592,48 @@ const App = () => {
             )
           ))}
           {chats.length === 0 && !searchQuery && (
-            <div className="text-center text-sm text-gray-500 mt-10 px-4">No previous chats recorded. Start a new one!</div>
+            <div className="text-center text-sm text-[#1e40af] mt-10 px-4">No previous chats recorded. Start a new one!</div>
           )}
           {chats.length > 0 && searchQuery && Object.values(groupedChats).every(group => group.length === 0) && (
-            <div className="text-center text-sm text-gray-500 mt-10 px-4 flex flex-col items-center">
+            <div className="text-center text-sm text-[#ffffff] mt-10 px-4 flex flex-col items-center">
               <Search size={24} className="mb-2 opacity-50" />
-              No chats found matching "<span className="text-gray-300">{searchQuery}</span>"
+              No chats found matching "<span className="text-[#1e40af]">{searchQuery}</span>"
             </div>
           )}
         </div>
 
         {/* User Profile Footer */}
-        <div className="p-3 border-t border-[#00e5ff]/20 bg-[#020407] relative">
+        <div className="p-3 border-t border-[#1e40af]/20 bg-[#f1f5f9] relative">
           <button 
             onClick={(e) => {
               e.stopPropagation();
               setShowUserMenu(!showUserMenu);
             }}
-            className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-[#00e5ff]/10 text-left transition cursor-pointer"
+            className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-[#1e40af]/5 text-left transition cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-[#00e5ff]/20 flex items-center justify-center border border-[#00e5ff]/40 text-[#00e5ff] font-bold text-sm">
+            <div className="w-8 h-8 rounded-full bg-[#1e40af]/10 flex items-center justify-center border border-[#1e40af]/30 text-[#1e40af] font-bold text-sm">
               👤
             </div>
-            <span className="flex-1 truncate text-sm font-medium text-gray-200 hover:text-[#00e5ff] transition">
+            <span className="flex-1 truncate text-sm font-medium text-[#1e40af] hover:text-[#1e40af] transition">
               {user ? user.name : 'Passenger'}
             </span>
           </button>
 
           {showUserMenu && (
-            <div className="absolute bottom-14 left-3 right-3 bg-[#07111f] border border-[#00e5ff]/30 rounded-lg shadow-[0_-12px_28px_rgba(0,0,0,0.65)] z-[90] overflow-hidden text-sm">
+            <div className="absolute bottom-14 left-3 right-3 bg-[#f1f5f9] border border-[#1e40af]/30 shadow-lg rounded-lg shadow-[0_-12px_28px_rgba(59,130,246,0.3)] z-[90] overflow-hidden text-sm">
               <div className="flex flex-col py-1">
                 <button 
                   onClick={() => {
                     setShowUserMenu(false);
                     fetchUserBookings();
                   }} 
-                  className="flex items-center gap-2 w-full text-left px-4 py-3 text-gray-200 hover:bg-[#00e5ff]/10 hover:text-[#00e5ff] transition cursor-pointer"
+                  className="flex items-center gap-2 w-full text-left px-4 py-3 text-[#1e40af] hover:bg-[#1e40af]/10 hover:text-[#1e40af] transition cursor-pointer font-medium"
                 >
                   ✈️ My Bookings
                 </button>
                 <button 
                   onClick={handleLogout} 
-                  className="flex items-center gap-2 w-full text-left px-4 py-3 text-red-300 hover:bg-red-500/10 hover:text-red-200 border-t border-[#00e5ff]/10 transition cursor-pointer"
+                  className="flex items-center gap-2 w-full text-left px-4 py-3 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-t border-[#1e40af]/20 transition cursor-pointer font-medium"
                 >
                   🚪 Logout
                 </button>
@@ -642,28 +647,28 @@ const App = () => {
       <div className="flex flex-1 flex-col h-full bg-transparent relative transition-all min-w-0 p-2 sm:p-4">
         
         {/* Background decorative elements (Sci-Fi Vibe) */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#00e5ff_1px,transparent_1px)] [background-size:20px_20px]"></div>
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
         {/* Glowing border container */}
-        <div className="flex flex-1 flex-col h-full relative rounded-2xl border border-[#00e5ff]/30 shadow-[0_0_20px_rgba(0,229,255,0.05)] overflow-hidden bg-[#0A121F]/60 backdrop-blur-2xl">
+        <div className="flex flex-1 flex-col h-full relative rounded-2xl border border-[#3b82f6]/30 shadow-[0_0_20px_rgba(135,206,235,0.05)] overflow-hidden bg-[#1e293b]/60/60 backdrop-blur-2xl">
           
-          <header className="bg-transparent border-b border-[#00e5ff]/20 p-3 sm:p-4 z-10 flex justify-between items-center shadow-sm">
+          <header className="bg-transparent border-b border-[#3b82f6]/20 p-3 sm:p-4 z-10 flex justify-between items-center shadow-sm">
             <div className="flex items-center gap-3">
-              <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-[#00e5ff] hover:bg-[#00e5ff]/10 rounded-lg transition">
+              <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-[#ffffff] hover:bg-[#3b82f6]/10 rounded-lg transition">
                 <Menu size={20} />
               </button>
-              <h1 className="text-lg sm:text-xl font-bold flex items-center gap-2 text-white">
-                <span className="text-[#00e5ff]">✈️</span> FlightAgent AI
+              <h1 className="text-lg sm:text-xl font-bold flex items-center gap-2 text-[#ffffff]">
+                <span className="text-[#3b82f6]">✈️</span> FlightAgent AI
               </h1>
             </div>
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">Model:</span>
+                <span className="text-xs sm:text-sm text-[#ffffff] hidden sm:inline">Model:</span>
                 <select
                   value={aiModel}
                   onChange={(e) => setAiModel(e.target.value)}
-                  className="bg-[#050B14] text-[#00e5ff] text-xs sm:text-sm border border-[#00e5ff]/30 rounded-lg p-1.5 focus:border-[#00e5ff] focus:ring-1 focus:ring-[#00e5ff]/50 focus:outline-none cursor-pointer hover:bg-[#0a121f] transition"
+                  className="bg-[#1e293b]/60 text-[#ffffff] text-xs sm:text-sm border border-[#3b82f6]/30 rounded-lg p-1.5 focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6]/50 focus:outline-none cursor-pointer hover:bg-[#1e293b]/60 transition"
                 >
                   <option value="openai">GPT-4o Mini</option>
                   <option value="gemini">Gemini 3.0 Flash</option>
@@ -679,51 +684,51 @@ const App = () => {
               className={`flex flex-col w-full ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
             >
               {editingIndex === index ? (
-                <div className="w-full sm:w-[85%] bg-[#2f2f2f] border border-white/10 rounded-xl p-3 shadow-sm mb-2">
+                <div className="w-full sm:w-[85%] bg-[#1e293b]/60 border border-[#3b82f6]/30 rounded-xl p-3 shadow-sm mb-2">
                   <textarea
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
-                    className="w-full resize-none outline-none bg-transparent p-2 text-gray-200"
+                    className="w-full resize-none outline-none bg-transparent p-2 text-[#ffffff]"
                     rows={3}
                   />
                   <div className="flex justify-end gap-2 mt-2">
-                    <button onClick={cancelEditing} className="px-3 py-1.5 text-sm rounded bg-[#424242] text-gray-300 hover:bg-gray-600 transition">Cancel</button>
-                    <button onClick={() => submitEdit(index)} className="px-3 py-1.5 text-sm rounded bg-gray-200 text-black hover:bg-white transition">Resend</button>
+                    <button onClick={cancelEditing} className="px-3 py-1.5 text-sm rounded bg-[#3b82f6]/30 text-[#ffffff] hover:bg-[#3b82f6]/50 transition">Cancel</button>
+                    <button onClick={() => submitEdit(index)} className="px-3 py-1.5 text-sm rounded bg-[#3b82f6] text-[#ffffff] hover:bg-[#1e293b]/60 transition">Resend</button>
                   </div>
                 </div>
               ) : (
                 <div className={`group flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} max-w-[95%] sm:max-w-[85%]`}>
                   <div
                     className={`flex flex-col gap-2 p-4 sm:p-5 ${msg.role === 'user'
-                      ? 'bg-[#00e5ff]/10 border border-[#00e5ff]/30 text-[#e0e0e0] rounded-2xl rounded-br-sm shadow-[0_0_15px_rgba(0,229,255,0.05)] backdrop-blur-md'
-                      : 'bg-[#111A24]/80 border border-white/10 text-gray-200 rounded-2xl rounded-bl-sm shadow-[0_4px_15px_rgba(0,0,0,0.5)] backdrop-blur-md markdown-body'
+                      ? 'bg-[#3b82f6]/10 border border-[#3b82f6]/30 text-[#ffffff] rounded-2xl rounded-br-sm shadow-[0_0_15px_rgba(135,206,235,0.05)] backdrop-blur-md'
+                      : 'bg-[#1e3a8a]/40/80 border border-[#3b82f6]/30 text-[#ffffff] rounded-2xl rounded-bl-sm shadow-[0_4px_15px_rgba(135,206,235,0.12)] backdrop-blur-md markdown-body'
                       }`}
                   >
                     {msg.image && (
-                      <div className="relative group max-w-[240px] rounded-lg overflow-hidden border border-[#00e5ff]/30 shadow-md mb-2 bg-[#050B14]">
+                      <div className="relative group max-w-[240px] rounded-lg overflow-hidden border border-[#3b82f6]/30 shadow-md mb-2 bg-[#1e293b]/60">
                         <img src={msg.image} alt="Uploaded Passport/ID Scan" className="max-h-[160px] object-cover w-full" />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span className="text-xs text-[#00e5ff] font-bold font-mono tracking-wider">PASSPORT SCAN</span>
+                        <div className="absolute inset-0 bg-[#3b82f6]/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-xs text-[#ffffff] font-bold font-mono tracking-wider">PASSPORT SCAN</span>
                         </div>
                       </div>
                     )}
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
-                        a: ({ node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300 transition-colors" />
+                        a: ({ node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" className="text-[#ffffff] underline hover:text-[#3b82f6] transition-colors" />
                       }}
                     >
                       {msg.content}
                     </ReactMarkdown>
 
                     {/* Action Icons */}
-                    <div className={`flex items-center gap-2 self-end transition-opacity ${msg.role === 'user' ? 'text-blue-200 opacity-0 group-hover:opacity-100' : 'text-gray-400 opacity-100'}`}>
+                    <div className={`flex items-center gap-2 self-end transition-opacity ${msg.role === 'user' ? 'text-[#3b82f6] opacity-0 group-hover:opacity-100' : 'text-[#ffffff] opacity-100'}`}>
                       {msg.role === 'user' && (
-                        <button onClick={() => startEditing(index, msg.content)} className="hover:text-white transition" title="Edit message">
+                        <button onClick={() => startEditing(index, msg.content)} className="hover:text-[#ffffff] transition" title="Edit message">
                           <Edit2 size={14} />
                         </button>
                       )}
-                      <button onClick={() => handleCopy(msg.content, index)} className={`hover:text-gray-700 transition ${msg.role === 'user' ? 'hover:text-white' : 'hover:text-gray-700'}`} title="Copy message text">
+                      <button onClick={() => handleCopy(msg.content, index)} className={`hover:text-[#ffffff] transition ${msg.role === 'user' ? 'hover:text-[#ffffff]' : 'hover:text-[#ffffff]'}`} title="Copy message text">
                         {copiedIndex === index ? <Check size={14} className={msg.role === 'user' ? "text-green-300" : "text-green-600"} /> : <Copy size={14} />}
                       </button>
                     </div>
@@ -735,10 +740,10 @@ const App = () => {
 
           {isLoading && (
             <div className="flex w-full justify-start">
-              <div className="p-4 bg-[#111A24]/60 border border-white/5 rounded-2xl rounded-bl-sm text-[#00e5ff] flex items-center gap-2 backdrop-blur-md">
-                <div className="w-2.5 h-2.5 bg-[#00e5ff] rounded-full animate-bounce shadow-[0_0_8px_#00e5ff]"></div>
-                <div className="w-2.5 h-2.5 bg-[#00e5ff]/80 rounded-full animate-bounce shadow-[0_0_8px_#00e5ff]" style={{ animationDelay: '0.15s' }}></div>
-                <div className="w-2.5 h-2.5 bg-[#00e5ff]/60 rounded-full animate-bounce shadow-[0_0_8px_#00e5ff]" style={{ animationDelay: '0.3s' }}></div>
+              <div className="p-4 bg-[#1e3a8a]/40/60 border border-[#3b82f6]/30 rounded-2xl rounded-bl-sm text-[#ffffff] flex items-center gap-2 backdrop-blur-md">
+                <div className="w-2.5 h-2.5 bg-[#3b82f6] rounded-full animate-bounce shadow-[0_0_8px_#3b82f6]"></div>
+                <div className="w-2.5 h-2.5 bg-[#3b82f6]/80 rounded-full animate-bounce shadow-[0_0_8px_#3b82f6]" style={{ animationDelay: '0.15s' }}></div>
+                <div className="w-2.5 h-2.5 bg-[#3b82f6]/60 rounded-full animate-bounce shadow-[0_0_8px_#3b82f6]" style={{ animationDelay: '0.3s' }}></div>
               </div>
             </div>
           )}
@@ -759,16 +764,16 @@ const App = () => {
           {/* Image preview strip */}
           {selectedImage && (
             <div className="max-w-3xl mx-auto mb-2 px-2">
-              <div className="flex items-center gap-2 bg-[#0a121f]/90 border border-[#00e5ff]/30 rounded-2xl px-3 py-2 w-fit">
-                <img src={selectedImage} alt="Attached" className="h-10 w-10 object-cover rounded-lg border border-[#00e5ff]/40" />
+              <div className="flex items-center gap-2 bg-[#1e293b]/60/90 border border-[#3b82f6]/30 rounded-2xl px-3 py-2 w-fit">
+                <img src={selectedImage} alt="Attached" className="h-10 w-10 object-cover rounded-lg border border-[#3b82f6]/40" />
                 <div className="text-xs flex flex-col">
-                  <span className="text-[#00e5ff] font-semibold font-mono">Passport / ID</span>
-                  <span className="text-gray-400">Ready for AI scan</span>
+                  <span className="text-[#ffffff] font-semibold font-mono">Passport / ID</span>
+                  <span className="text-[#ffffff]">Ready for AI scan</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedImage(null)}
-                  className="ml-2 text-gray-400 hover:text-red-400 transition"
+                  className="ml-2 text-[#ffffff] hover:text-red-600 transition"
                   title="Remove attachment"
                 >
                   <X size={14} />
@@ -779,14 +784,14 @@ const App = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="max-w-3xl mx-auto flex flex-col sm:flex-row gap-2 relative bg-[#0a121f]/90 backdrop-blur-md rounded-full border border-[#00e5ff]/30 shadow-[0_0_15px_rgba(0,229,255,0.05)] focus-within:border-[#00e5ff]/60 focus-within:shadow-[0_0_20px_rgba(0,229,255,0.15)] transition-all px-2 py-2"
+            className="max-w-3xl mx-auto flex flex-col sm:flex-row gap-2 relative bg-[#1e293b]/60/90 backdrop-blur-md rounded-full border border-[#3b82f6]/30 shadow-[0_0_15px_rgba(135,206,235,0.05)] focus-within:border-[#3b82f6]/60 focus-within:shadow-[0_0_20px_rgba(135,206,235,0.15)] transition-all px-2 py-2"
           >
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="E.g. I need a flight from NYC to London..."
-              className="flex-1 p-2 pl-4 bg-transparent focus:outline-none text-sm sm:text-base text-gray-100 placeholder-[#00e5ff]/40"
+              className="flex-1 p-2 pl-4 bg-transparent focus:outline-none text-sm sm:text-base text-[#ffffff] placeholder-[#3b82f6]/40"
               disabled={isLoading}
             />
 
@@ -795,7 +800,7 @@ const App = () => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className={`p-2 rounded-full transition-colors ${selectedImage ? 'bg-[#00e5ff]/20 text-[#00e5ff] border border-[#00e5ff]/50' : 'text-[#00e5ff]/60 hover:text-[#00e5ff] hover:bg-[#00e5ff]/10'}`}
+                className={`p-2 rounded-full transition-colors ${selectedImage ? 'bg-[#3b82f6]/20 text-[#ffffff] border border-[#3b82f6]/50' : 'text-[#3b82f6]/60 hover:text-[#ffffff] hover:bg-[#3b82f6]/10'}`}
                 title="Scan Passport / ID with AI Vision"
               >
                 <Paperclip size={18} />
@@ -804,7 +809,7 @@ const App = () => {
               <button
                 type="button"
                 onClick={startListening}
-                className={`p-2 rounded-full transition-colors ${isListening ? 'bg-red-500/20 text-red-500' : 'text-[#00e5ff]/60 hover:text-[#00e5ff] hover:bg-[#00e5ff]/10'
+                className={`p-2 rounded-full transition-colors ${isListening ? 'bg-red-500/20 text-red-500' : 'text-[#3b82f6]/60 hover:text-[#ffffff] hover:bg-[#3b82f6]/10'
                   }`}
                 title="Voice input"
               >
@@ -815,15 +820,15 @@ const App = () => {
                 type="submit"
                 disabled={isLoading || (!input.trim() && !selectedImage)}
                 className={`p-2 rounded-full transition-all flex justify-center items-center h-10 w-10 ${isLoading || (!input.trim() && !selectedImage)
-                  ? 'bg-transparent text-[#00e5ff]/30'
-                  : 'bg-[#00e5ff]/20 text-[#00e5ff] border border-[#00e5ff]/50 shadow-[0_0_10px_rgba(0,229,255,0.2)] hover:bg-[#00e5ff]/40'
+                  ? 'bg-transparent text-[#3b82f6]/30'
+                  : 'bg-[#3b82f6]/20 text-[#ffffff] border border-[#3b82f6]/50 shadow-[0_0_10px_rgba(135,206,235,0.2)] hover:bg-[#3b82f6]/40'
                   }`}
               >
                 <Send size={18} className={(input.trim() || selectedImage) && !isLoading ? 'transform translate-x-[-1px] translate-y-[1px]' : ''} />
               </button>
             </div>
           </form>
-          <div className="text-center text-xs text-[#00e5ff]/50 mt-3">
+          <div className="text-center text-xs text-[#3b82f6]/50 mt-3">
             FlightAgent AI can make mistakes. Verify flight details before completing payments.
           </div>
         </footer>
@@ -831,42 +836,42 @@ const App = () => {
       </div>
 
       {showSeatMap && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-[#050B14] border border-[#00e5ff]/40 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-[0_0_30px_rgba(0,229,255,0.2)]">
+        <div className="fixed inset-0 bg-[#3b82f6]/45 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-[#1e293b]/60 border border-[#3b82f6]/40 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-[0_0_30px_rgba(135,206,235,0.2)]">
             
             {/* Modal Header */}
-            <header className="p-4 border-b border-[#00e5ff]/20 flex justify-between items-center bg-[#0a121f]/90">
-              <h3 className="text-[#00e5ff] font-bold text-lg flex items-center gap-2">
+            <header className="p-4 border-b border-[#3b82f6]/20 flex justify-between items-center bg-[#1e293b]/60/90">
+              <h3 className="text-[#ffffff] font-bold text-lg flex items-center gap-2">
                 💺 Interactive Seat Map
               </h3>
               <button 
                 onClick={() => setShowSeatMap(false)}
-                className="text-gray-400 hover:text-white transition"
+                className="text-[#ffffff] hover:text-[#ffffff] transition"
               >
                 <X size={20} />
               </button>
             </header>
 
             {/* Cabin Class Context */}
-            <div className="flex justify-center p-3 border-b border-[#00e5ff]/10 bg-[#070E1A]">
-              <span className="px-4 py-1.5 rounded-full text-xs font-semibold capitalize bg-[#00e5ff] text-[#050B14] shadow-[0_0_10px_rgba(0,229,255,0.4)]">
+            <div className="flex justify-center p-3 border-b border-[#3b82f6]/10 bg-[#1e3a8a]/40">
+              <span className="px-4 py-1.5 rounded-full text-xs font-semibold capitalize bg-[#3b82f6] text-[#ffffff] shadow-[0_0_10px_rgba(0,0,128,0.4)]">
                 {seatCabinClass} Class
               </span>
             </div>
 
             {/* Seat Layout Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col items-center">
-              <div className="w-full max-w-md bg-[#0C1929] border border-white/5 rounded-2xl p-4 flex flex-col items-center">
+              <div className="w-full max-w-md bg-[#1e3a8a]/40 border border-[#3b82f6]/30 rounded-2xl p-4 flex flex-col items-center">
                 
                 {/* Plane Cockpit Vibe */}
-                <div className="w-24 h-12 bg-gradient-to-t from-[#0C1929] to-[#00e5ff]/20 border-t border-[#00e5ff]/30 rounded-t-full mb-8 flex items-center justify-center">
-                  <span className="text-[10px] text-[#00e5ff]/50 font-mono tracking-widest">COCKPIT</span>
+                <div className="w-24 h-12 bg-gradient-to-t from-[#E0F7FA] to-[#3b82f6]/20 border-t border-[#3b82f6]/30 rounded-t-full mb-8 flex items-center justify-center">
+                  <span className="text-[10px] text-[#ffffff]/50 font-mono tracking-widest">COCKPIT</span>
                 </div>
 
                 {seatMapLoading ? (
                   <div className="flex flex-col items-center justify-center py-16 gap-3">
-                    <div className="w-10 h-10 border-2 border-t-transparent border-[#00e5ff] rounded-full animate-spin"></div>
-                    <span className="text-xs text-[#00e5ff]/60 font-mono tracking-wide">Loading seat availability...</span>
+                    <div className="w-10 h-10 border-2 border-t-transparent border-[#3b82f6] rounded-full animate-spin"></div>
+                    <span className="text-xs text-[#ffffff]/60 font-mono tracking-wide">Loading seat availability...</span>
                   </div>
                 ) : (
                 <>
@@ -880,7 +885,7 @@ const App = () => {
                     return (
                       <div key={rowNum} className="col-span-6 grid grid-cols-6 gap-2 w-full items-center mt-3">
                         {/* Row Label */}
-                        <span className="col-span-6 text-center text-[10px] font-mono text-[#00e5ff]/40 mb-1">ROW {rowNum}</span>
+                        <span className="col-span-6 text-center text-[10px] font-mono text-[#ffffff]/60 mb-1">ROW {rowNum}</span>
                         
                         {seatLetters.map((letter, lIdx) => {
                           const seatId = `${rowNum}${letter}`;
@@ -893,6 +898,17 @@ const App = () => {
                               key={seatId}
                               type="button"
                               disabled={isOccupied}
+                              className={`
+                                flex items-center justify-center 
+                                h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl 
+                                font-bold text-xs sm:text-sm transition-all duration-300
+                                ${isSelected
+                                  ? 'bg-[#3b82f6] text-[#ffffff] shadow-[0_0_15px_rgba(59,130,246,0.6)] scale-110 z-10'
+                                  : isOccupied
+                                    ? 'bg-[#1b222c] text-[#ffffff]/30 border border-[#1e293b] cursor-not-allowed'
+                                    : 'bg-[#1e293b]/40 text-[#ffffff] border border-[#3b82f6]/40 hover:border-[#3b82f6] hover:bg-[#3b82f6]/20'
+                                }
+                              `}
                               onClick={() => {
                                 if (isSelected) {
                                   setSelectedSeats(selectedSeats.filter(s => s !== seatId));
@@ -905,13 +921,6 @@ const App = () => {
                                   }
                                 }
                               }}
-                              className={`h-8 w-8 rounded text-[10px] font-bold flex items-center justify-center transition-all ${
-                                isOccupied 
-                                  ? 'bg-[#1b222c] text-gray-600 border border-white/5 cursor-not-allowed'
-                                  : isSelected
-                                  ? 'bg-[#00e5ff] text-[#050B14] shadow-[0_0_8px_#00e5ff] font-extrabold border border-[#00e5ff]'
-                                  : 'bg-transparent border border-[#00e5ff]/40 text-[#00e5ff] hover:bg-[#00e5ff]/20'
-                              }`}
                               title={isOccupied ? `Seat ${seatId} is Occupied` : `Seat ${seatId}`}
                             >
                               {letter}
@@ -924,16 +933,16 @@ const App = () => {
                 </div>
 
                 {/* Plane Tail Vibe */}
-                <div className="w-full border-b border-dashed border-[#00e5ff]/20 my-6"></div>
-                <div className="flex gap-4 text-xs font-mono text-gray-400">
+                <div className="w-full border-b border-dashed border-[#3b82f6]/20 my-6"></div>
+                <div className="flex gap-4 text-xs font-mono text-[#ffffff]">
                   <div className="flex items-center gap-1.5">
-                    <span className="h-3.5 w-3.5 rounded border border-[#00e5ff]/40"></span> Available
+                    <span className="h-3.5 w-3.5 rounded border border-[#3b82f6]/40"></span> Available
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="h-3.5 w-3.5 rounded bg-[#00e5ff] shadow-[0_0_8px_#00e5ff]"></span> Selected
+                    <span className="h-3.5 w-3.5 rounded bg-[#3b82f6] shadow-[0_0_8px_#ffffff]"></span> Selected
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="h-3.5 w-3.5 rounded bg-[#1b222c] border border-white/5"></span> Occupied
+                    <span className="h-3.5 w-3.5 rounded bg-[#1b222c] border border-#1e293b"></span> Occupied
                   </div>
                 </div>
 
@@ -943,23 +952,23 @@ const App = () => {
             </div>
 
             {/* Modal Footer */}
-            <footer className="p-4 border-t border-[#00e5ff]/20 bg-[#0a121f]/90 flex justify-between items-center">
+            <footer className="p-4 border-t border-[#3b82f6]/20 bg-[#1e293b]/60/90 flex justify-between items-center">
               <div className="flex flex-col">
-                <span className="text-xs text-gray-400 font-medium">Selected Seats:</span>
-                <span className="text-[#00e5ff] font-bold text-sm tracking-wide">
+                <span className="text-xs text-[#ffffff] font-medium">Selected Seats:</span>
+                <span className="text-[#3b82f6] font-bold text-sm tracking-wide">
                   {selectedSeats.length > 0 ? selectedSeats.join(', ') : 'None'}
                 </span>
                 {seatLockStatus && (
-                  <span className="text-xs text-amber-300 mt-1">{seatLockStatus}</span>
+                  <span className="text-xs text-amber-700 mt-1">{seatLockStatus}</span>
                 )}
               </div>
               <div className="flex gap-2">
-                <div className="flex items-center gap-1 bg-[#0a121f] border border-[#00e5ff]/30 px-3 py-1.5 rounded-lg text-xs">
-                  <span className="text-[#00e5ff]">Qty:</span>
+                <div className="flex items-center gap-1 bg-[#1e293b]/60 border border-[#3b82f6]/30 px-3 py-1.5 rounded-lg text-xs">
+                  <span className="text-[#3b82f6]">Qty:</span>
                   <select 
                     value={maxSeatSelection}
                     onChange={(e) => setMaxSeatSelection(Number(e.target.value))}
-                    className="bg-transparent text-[#00e5ff] border-none focus:ring-0 cursor-pointer p-0 pr-6 text-xs font-bold"
+                    className="bg-transparent text-[#3b82f6] border-none focus:ring-0 cursor-pointer p-0 pr-6 text-xs font-bold"
                   >
                     {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
                   </select>
@@ -970,8 +979,8 @@ const App = () => {
                   disabled={selectedSeats.length === 0}
                   className={`px-5 py-2 rounded-lg text-xs font-bold transition ${
                     selectedSeats.length > 0
-                      ? 'bg-[#00e5ff] text-[#050B14] hover:bg-white shadow-[0_0_12px_rgba(0,229,255,0.3)]'
-                      : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                      ? 'bg-[#3b82f6] text-[#ffffff] hover:bg-[#1e3a8a] shadow-[0_0_12px_rgba(14,165,233,0.3)]'
+                      : 'bg-[#1e293b] text-[#ffffff]/50 cursor-not-allowed'
                   }`}
                 >
                   Confirm Seats
@@ -985,17 +994,17 @@ const App = () => {
 
       {/* Bookings Modal */}
       {showBookingsModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-[#050B14] border border-[#00e5ff]/40 rounded-2xl w-full max-w-xl max-h-[80vh] overflow-hidden flex flex-col shadow-[0_0_30px_rgba(0,229,255,0.2)]">
+        <div className="fixed inset-0 bg-[#3b82f6]/45 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-[#1e293b]/60 border border-[#3b82f6]/40 rounded-2xl w-full max-w-xl max-h-[80vh] overflow-hidden flex flex-col shadow-[0_0_30px_rgba(135,206,235,0.2)]">
             
             {/* Modal Header */}
-            <header className="p-4 border-b border-[#00e5ff]/20 flex justify-between items-center bg-[#0a121f]/90">
-              <h3 className="text-[#00e5ff] font-bold text-lg flex items-center gap-2">
+            <header className="p-4 border-b border-[#3b82f6]/20 flex justify-between items-center bg-[#1e293b]/60/90">
+              <h3 className="text-[#ffffff] font-bold text-lg flex items-center gap-2">
                 ✈️ My Bookings
               </h3>
               <button 
                 onClick={() => setShowBookingsModal(false)}
-                className="text-gray-400 hover:text-white transition cursor-pointer"
+                className="text-[#ffffff] hover:text-[#ffffff] transition cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -1005,10 +1014,10 @@ const App = () => {
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {loadingBookings ? (
                 <div className="flex justify-center items-center py-10">
-                  <div className="w-8 h-8 border-2 border-t-transparent border-[#00e5ff] rounded-full animate-spin"></div>
+                  <div className="w-8 h-8 border-2 border-t-transparent border-[#3b82f6] rounded-full animate-spin"></div>
                 </div>
               ) : userBookings.length === 0 ? (
-                <div className="text-center py-10 text-gray-500">
+                <div className="text-center py-10 text-[#ffffff]">
                   No bookings found. Book a flight using our AI Flight Agent!
                 </div>
               ) : (
@@ -1016,47 +1025,47 @@ const App = () => {
                   {userBookings.map((booking) => (
                     <div 
                       key={booking._id} 
-                      className="bg-[#0A121F]/80 border border-[#00e5ff]/20 hover:border-[#00e5ff]/50 rounded-xl p-4 transition-all shadow-md"
+                      className="bg-[#1e293b]/60/80 border border-[#3b82f6]/20 hover:border-[#3b82f6]/50 rounded-xl p-4 transition-all shadow-md"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <span className="text-xs font-mono text-gray-500 uppercase">PNR Number</span>
-                          <p className="text-[#00e5ff] font-bold tracking-widest text-lg">{booking.pnr}</p>
+                          <span className="text-xs font-mono text-[#ffffff] uppercase">PNR Number</span>
+                          <p className="text-[#ffffff] font-bold tracking-widest text-lg">{booking.pnr}</p>
                         </div>
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide border ${
                           booking.bookingStatus === 'Confirmed' 
-                            ? 'bg-green-500/10 text-green-400 border-green-500/30' 
+                            ? 'bg-green-500/10 text-green-700 border-green-500/30'
                             : booking.bookingStatus === 'Cancelled'
-                            ? 'bg-red-500/10 text-red-400 border-red-500/30'
-                            : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
+                            ? 'bg-red-500/10 text-red-600 border-red-500/30'
+                            : 'bg-yellow-500/10 text-yellow-700 border-yellow-500/30'
                         }`}>
                           {booking.bookingStatus}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between bg-[#050B14]/60 p-3 rounded-lg border border-white/5 my-3">
+                      <div className="flex items-center justify-between bg-[#1e293b]/60/60 p-3 rounded-lg border border-[#3b82f6]/30 my-3">
                         <div className="text-left">
-                          <span className="text-[10px] text-gray-500 font-mono">FROM</span>
-                          <p className="text-base font-bold text-white">{booking.flight?.departureAirport || 'TBD'}</p>
-                          <span className="text-[10px] text-gray-400 block mt-0.5">{booking.flight?.departureCity || ''}</span>
+                          <span className="text-[10px] text-[#ffffff] font-mono">FROM</span>
+                          <p className="text-base font-bold text-[#ffffff]">{booking.flight?.departureAirport || 'TBD'}</p>
+                          <span className="text-[10px] text-[#ffffff] block mt-0.5">{booking.flight?.departureCity || ''}</span>
                         </div>
                         <div className="flex flex-col items-center flex-1 px-4">
-                          <span className="text-[10px] text-[#00e5ff] font-mono tracking-wider font-semibold capitalize">{booking.cabinClass}</span>
-                          <div className="w-full border-t border-dashed border-[#00e5ff]/30 my-1 relative">
+                          <span className="text-[10px] text-[#3b82f6] font-mono tracking-wider font-semibold capitalize">{booking.cabinClass}</span>
+                          <div className="w-full border-t border-dashed border-[#3b82f6]/30 my-1 relative">
                             <span className="absolute -top-[5px] left-1/2 -translate-x-1/2 text-xs">✈️</span>
                           </div>
-                          <span className="text-[9px] text-gray-500 font-mono">NON-STOP</span>
+                          <span className="text-[9px] text-[#ffffff] font-mono">NON-STOP</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-[10px] text-gray-500 font-mono">TO</span>
-                          <p className="text-base font-bold text-white">{booking.flight?.destinationAirport || 'TBD'}</p>
-                          <span className="text-[10px] text-gray-400 block mt-0.5">{booking.flight?.destinationCity || ''}</span>
+                          <span className="text-[10px] text-[#ffffff] font-mono">TO</span>
+                          <p className="text-base font-bold text-[#ffffff]">{booking.flight?.destinationAirport || 'TBD'}</p>
+                          <span className="text-[10px] text-[#ffffff] block mt-0.5">{booking.flight?.destinationCity || ''}</span>
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center text-xs pt-2 text-gray-400 border-t border-white/5">
-                        <span>Passenger: <strong className="text-white">{booking.passengers?.[0]?.name || 'N/A'}</strong></span>
-                        <span>Total: <strong className="text-[#00e5ff] font-bold">${booking.totalAmount}</strong></span>
+                      <div className="flex justify-between items-center text-xs pt-2 text-[#ffffff] border-t border-[#3b82f6]/30">
+                        <span>Passenger: <strong className="text-[#ffffff]">{booking.passengers?.[0]?.name || 'N/A'}</strong></span>
+                        <span>Total: <strong className="text-[#ffffff] font-bold">${booking.totalAmount}</strong></span>
                       </div>
                     </div>
                   ))}
@@ -1065,10 +1074,10 @@ const App = () => {
             </div>
 
             {/* Modal Footer */}
-            <footer className="p-4 border-t border-[#00e5ff]/20 bg-[#0a121f]/90 flex justify-end">
+            <footer className="p-4 border-t border-[#3b82f6]/20 bg-[#1e293b]/60/90 flex justify-end">
               <button 
                 onClick={() => setShowBookingsModal(false)}
-                className="bg-[#00e5ff]/10 hover:bg-[#00e5ff]/20 text-[#00e5ff] border border-[#00e5ff]/30 px-5 py-2 rounded-lg text-xs font-bold transition cursor-pointer"
+                className="bg-[#3b82f6]/10 hover:bg-[#3b82f6]/20 text-[#ffffff] border border-[#3b82f6]/30 px-5 py-2 rounded-lg text-xs font-bold transition cursor-pointer"
               >
                 Close
               </button>

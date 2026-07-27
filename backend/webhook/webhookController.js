@@ -66,7 +66,10 @@ exports.handleDodoWebhook = async (req, res) => {
 exports.manualConfirm = async (req, res) => {
     try {
         const { bookingId } = req.params;
-        await processPaymentSuccess(bookingId);
+        // paymentId is sent from the frontend after Dodo redirects back with ?payment_id=xxx
+        // This ensures dodoPaymentId is saved to the booking even when running locally (no real webhook)
+        const { paymentId } = req.body || {};
+        await processPaymentSuccess(bookingId, paymentId);
         res.status(200).json({ success: true, message: 'Booking confirmed' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
