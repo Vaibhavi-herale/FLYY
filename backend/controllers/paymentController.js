@@ -26,8 +26,14 @@ exports.createCheckoutSession = async (req, res) => {
         });
 
         const Booking = require('../models/Booking');
+        // Save the payment_id generated at checkout creation.
+        // This is the same payment_id Dodo will later confirm in the webhook (payment.succeeded).
+        // We save it here as a reliable reference in case the webhook is delayed or missed.
         await Booking.findByIdAndUpdate(bookingRef, {
-            $set: { 'payment.dodoPaymentId': payment.payment_id || payment.id }
+            $set: {
+                'payment.dodoPaymentId': payment.payment_id || payment.id,
+                'payment.paymentStatus': 'pending'
+            }
         });
 
         res.status(200).json({

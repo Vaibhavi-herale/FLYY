@@ -182,26 +182,49 @@ class RefundService {
         const booking = await Booking.findById(refund.bookingId);
         if (!booking) throw new Error('Booking not found');
 
-        const dodoPaymentId = booking.payment?.dodoPaymentId;
-        if (!dodoPaymentId) {
-            // Bypass Dodo API for missing payment IDs (manual refund)
-            refund.status = 'processed';
-            refund.processedAt = new Date();
-            refund.transactionId = 'manual_refund_no_id';
-            refund.notes = (refund.notes ? refund.notes + ' | ' : '') + 'Processed manually (missing Dodo payment ID).';
-            await refund.save();
-
-            await Booking.findByIdAndUpdate(refund.bookingId, { bookingStatus: 'Refunded' });
-            await emailNotifications.sendRefundProcessedEmail(booking.contactEmail, refund);
-            return refund;
-        }
-
-        // Real Dodo refund API call
+        // Initialize Dodo SDK early so we can use it for lookup if needed
         const DodoPayments = require('dodopayments');
         const dodo = new DodoPayments({
             bearerToken: process.env.DODO_API_KEY,
             environment: 'test_mode'
         });
+
+        let dodoPaymentId = booking.payment?.dodoPaymentId;
+
+        // If payment ID is missing from DB, attempt to fetch it from Dodo API
+        // using the booking ID stored in payment metadata
+        if (!dodoPaymentId) {
+            console.log(`[RefundService] dodoPaymentId missing for booking ${booking._id}. Attempting to fetch from Dodo API...`);
+            try {
+                // List recent payments and find the one with our booking_id in metadata
+                const payments = await dodo.payments.list({ limit: 100 });
+                const matchedPayment = payments?.items?.find(p =>
+                    p.metadata?.booking_id === booking._id.toString() &&
+                    p.status === 'succeeded'
+                );
+
+                if (matchedPayment) {
+                    dodoPaymentId = matchedPayment.payment_id;
+                    console.log(`[RefundService] Found Dodo payment ID via API lookup: ${dodoPaymentId}`);
+
+                    // Save it back to the booking so future refunds work immediately
+                    await Booking.findByIdAndUpdate(booking._id, {
+                        $set: { 'payment.dodoPaymentId': dodoPaymentId }
+                    });
+                } else {
+                    throw new Error(
+                        `No completed Dodo payment found for booking ${booking._id}. ` +
+                        `This booking may have been paid outside of Dodo Payments, or the webhook ` +
+                        `(payment.succeeded) was never received. Please check your Dodo dashboard ` +
+                        `and ensure DODO_WEBHOOK_SECRET is correctly set in your .env file.`
+                    );
+                }
+            } catch (lookupError) {
+                throw new Error(`Could not retrieve Dodo payment ID: ${lookupError.message}`);
+            }
+        }
+
+        // Real Dodo refund API call (dodo SDK already initialized above)
 
         if (refund.refundAmount <= 0) {
             refund.status = 'processed';
