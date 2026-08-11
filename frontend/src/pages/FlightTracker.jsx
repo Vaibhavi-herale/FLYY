@@ -131,7 +131,7 @@ export default function FlightTracker() {
     const getStatusColor = (status) => {
         switch (status) {
             case 'scheduled':
-                return 'text-blue-600';
+                return 'text-sky-700';
             case 'delayed':
                 return 'text-yellow-600';
             case 'cancelled':
@@ -146,7 +146,7 @@ export default function FlightTracker() {
             case 'diverted':
                 return 'text-orange-600';
             default:
-                return 'text-gray-600';
+                return 'text-[#000080]';
         }
     };
 
@@ -165,7 +165,7 @@ export default function FlightTracker() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-100 p-6">
             <div className="max-w-4xl mx-auto">
                 <div className="mb-8">
                     <h1 className="text-4xl font-bold mb-6">✈️ Flight Tracker</h1>
@@ -179,7 +179,7 @@ export default function FlightTracker() {
                         />
                         <button
                             type="submit"
-                            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                            className="bg-sky-600 text-[#000080] px-6 py-2 rounded hover:bg-sky-700"
                         >
                             Search
                         </button>
@@ -191,7 +191,7 @@ export default function FlightTracker() {
                         <p className="text-gray-500">Loading flight information...</p>
                     </div>
                 ) : flightStatus ? (
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div className="bg-[#f0f8ff] rounded-lg shadow-lg overflow-hidden">
                         {/* Header */}
                         <div className={`p-6 ${getStatusColor(flightStatus.currentStatus).replace('text-', 'bg-')} bg-opacity-10`}>
                             <div className="flex justify-between items-center">
@@ -216,26 +216,26 @@ export default function FlightTracker() {
                         {/* Route Information */}
                         <div className="grid grid-cols-2 gap-6 p-6 border-b">
                             <div>
-                                <p className="text-sm text-gray-600 mb-2">DEPARTURE</p>
+                                <p className="text-sm text-[#000080] mb-2">DEPARTURE</p>
                                 <p className="text-2xl font-bold">
                                     {flightStatus.flightId?.departureCity || flightStatus.departureAirport || 'TBD'}
                                 </p>
-                                <p className="text-gray-600 mt-2">
+                                <p className="text-[#000080] mt-2">
                                     {flightStatus.scheduledDeparture
                                         ? new Date(flightStatus.scheduledDeparture).toLocaleString()
                                         : 'TBD'
                                     }
                                 </p>
                                 {flightStatus.gate && (
-                                    <p className="text-sm text-gray-600 mt-2">Gate: {flightStatus.gate}</p>
+                                    <p className="text-sm text-[#000080] mt-2">Gate: {flightStatus.gate}</p>
                                 )}
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600 mb-2">ARRIVAL</p>
+                                <p className="text-sm text-[#000080] mb-2">ARRIVAL</p>
                                 <p className="text-2xl font-bold">
                                     {flightStatus.flightId?.destinationCity || flightStatus.destinationAirport || 'TBD'}
                                 </p>
-                                <p className="text-gray-600 mt-2">
+                                <p className="text-[#000080] mt-2">
                                     {flightStatus.estimatedArrival
                                         ? new Date(flightStatus.estimatedArrival).toLocaleString()
                                         : 'TBD'
@@ -280,19 +280,19 @@ export default function FlightTracker() {
                                     </MapContainer>
                                 </div>
                                 <div className="grid grid-cols-3 gap-4 mt-4 text-center">
-                                    <div className="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                                    <div className="bg-[#f0f8ff] p-3 rounded-lg border border-indigo-100 shadow-sm">
                                         <p className="text-xs text-gray-500 font-medium">Altitude</p>
                                         <p className="font-extrabold text-indigo-900 mt-0.5">
                                             {flightStatus.live.altitude ? `${flightStatus.live.altitude.toLocaleString()} ft` : 'N/A'}
                                         </p>
                                     </div>
-                                    <div className="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                                    <div className="bg-[#f0f8ff] p-3 rounded-lg border border-indigo-100 shadow-sm">
                                         <p className="text-xs text-gray-500 font-medium">Ground Speed</p>
                                         <p className="font-extrabold text-indigo-900 mt-0.5">
                                             {flightStatus.live.speed ? `${flightStatus.live.speed} mph` : 'N/A'}
                                         </p>
                                     </div>
-                                    <div className="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                                    <div className="bg-[#f0f8ff] p-3 rounded-lg border border-indigo-100 shadow-sm">
                                         <p className="text-xs text-gray-500 font-medium">Coordinates</p>
                                         <p className="font-extrabold text-indigo-900 mt-1 text-[10px] sm:text-xs">
                                             {flightStatus.live.latitude.toFixed(4)}°, {flightStatus.live.longitude.toFixed(4)}°
@@ -306,25 +306,25 @@ export default function FlightTracker() {
                         <div className="grid grid-cols-2 gap-4 p-6 bg-gray-50">
                             {flightStatus.terminal && (
                                 <div>
-                                    <p className="text-sm text-gray-600">Terminal</p>
+                                    <p className="text-sm text-[#000080]">Terminal</p>
                                     <p className="font-semibold">{flightStatus.terminal}</p>
                                 </div>
                             )}
                             {flightStatus.aircraft && (
                                 <div>
-                                    <p className="text-sm text-gray-600">Aircraft</p>
+                                    <p className="text-sm text-[#000080]">Aircraft</p>
                                     <p className="font-semibold">{flightStatus.aircraft}</p>
                                 </div>
                             )}
                             {flightStatus.weather && (
                                 <div>
-                                    <p className="text-sm text-gray-600">Weather</p>
+                                    <p className="text-sm text-[#000080]">Weather</p>
                                     <p className="font-semibold">{flightStatus.weather.condition || 'Clear'}</p>
                                 </div>
                             )}
                             {flightStatus.bagageCarousel && (
                                 <div>
-                                    <p className="text-sm text-gray-600">Baggage Carousel</p>
+                                    <p className="text-sm text-[#000080]">Baggage Carousel</p>
                                     <p className="font-semibold">{flightStatus.bagageCarousel}</p>
                                 </div>
                             )}
@@ -358,7 +358,7 @@ export default function FlightTracker() {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-white p-8 rounded-lg shadow text-center">
+                    <div className="bg-[#f0f8ff] p-8 rounded-lg shadow text-center">
                         <p className="text-gray-500">No flight information found</p>
                     </div>
                 )}

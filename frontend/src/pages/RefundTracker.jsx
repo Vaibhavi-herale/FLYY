@@ -72,7 +72,7 @@ export default function RefundTracker() {
             case 'approved':
                 return <CheckCircle className="text-green-600" size={24} />;
             case 'processed':
-                return <CheckCircle className="text-blue-600" size={24} />;
+                return <CheckCircle className="text-sky-700" size={24} />;
             case 'rejected':
                 return <XCircle className="text-red-600" size={24} />;
             default:
@@ -87,7 +87,7 @@ export default function RefundTracker() {
             case 'approved':
                 return 'bg-green-50 border-green-300';
             case 'processed':
-                return 'bg-blue-50 border-blue-300';
+                return 'bg-sky-50 border-sky-300';
             case 'rejected':
                 return 'bg-red-50 border-red-300';
             default:
@@ -106,14 +106,14 @@ export default function RefundTracker() {
                     <h1 className="text-3xl font-bold">💰 Refund Tracker</h1>
                     <button
                         onClick={() => setShowRequestForm(!showRequestForm)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        className="bg-sky-600 text-[#000080] px-4 py-2 rounded hover:bg-sky-700"
                     >
                         Request Refund
                     </button>
                 </div>
 
                 {showRequestForm && (
-                    <div className="bg-white p-6 rounded-lg shadow mb-8">
+                    <div className="bg-[#f0f8ff] p-6 rounded-lg shadow mb-8">
                         <h2 className="text-xl font-bold mb-4">Request Refund</h2>
                         <form onSubmit={handleRequestRefund}>
                             <div className="mb-4">
@@ -142,14 +142,14 @@ export default function RefundTracker() {
                             <div className="flex gap-3">
                                 <button
                                     type="submit"
-                                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                                    className="bg-green-600 text-[#000080] px-4 py-2 rounded hover:bg-green-700"
                                 >
                                     Submit Request
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setShowRequestForm(false)}
-                                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                                    className="bg-gray-400 text-[#000080] px-4 py-2 rounded hover:bg-gray-500"
                                 >
                                     Cancel
                                 </button>
@@ -159,7 +159,7 @@ export default function RefundTracker() {
                 )}
 
                 {refunds.length === 0 ? (
-                    <div className="bg-white p-8 rounded-lg shadow text-center">
+                    <div className="bg-[#f0f8ff] p-8 rounded-lg shadow text-center">
                         <p className="text-gray-500">No refunds yet</p>
                     </div>
                 ) : (
@@ -174,31 +174,31 @@ export default function RefundTracker() {
                                         {getStatusIcon(refund.status)}
                                         <div>
                                             <h3 className="font-bold text-lg">Refund ID: {refund._id}</h3>
-                                            <p className="text-sm text-gray-600">Status: {refund.status.toUpperCase()}</p>
+                                            <p className="text-sm text-[#000080]">Status: {refund.status.toUpperCase()}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-2xl font-bold">${refund.refundAmount}</p>
-                                        <p className="text-sm text-gray-600">{refund.refundPercentage}% of original</p>
+                                        <p className="text-sm text-[#000080]">{refund.refundPercentage}% of original</p>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                                     <div>
-                                        <p className="text-gray-600">Original Amount</p>
+                                        <p className="text-[#000080]">Original Amount</p>
                                         <p className="font-semibold">${refund.originalAmount}</p>
                                     </div>
                                     <div>
-                                        <p className="text-gray-600">Reason</p>
+                                        <p className="text-[#000080]">Reason</p>
                                         <p className="font-semibold">{refund.reason.replace('_', ' ')}</p>
                                     </div>
                                     <div>
-                                        <p className="text-gray-600">Requested</p>
+                                        <p className="text-[#000080]">Requested</p>
                                         <p className="font-semibold">{new Date(refund.requestedAt).toLocaleDateString()}</p>
                                     </div>
                                     {refund.processedAt && (
                                         <div>
-                                            <p className="text-gray-600">Processed</p>
+                                            <p className="text-[#000080]">Processed</p>
                                             <p className="font-semibold">{new Date(refund.processedAt).toLocaleDateString()}</p>
                                         </div>
                                     )}
@@ -206,12 +206,12 @@ export default function RefundTracker() {
 
                                 {refund.notes && (
                                     <div className="mt-4 pt-4 border-t">
-                                        <p className="text-sm text-gray-600">Notes: {refund.notes}</p>
+                                        <p className="text-sm text-[#000080]">Notes: {refund.notes}</p>
                                     </div>
                                 )}
 
                                 {refund.status === 'processed' && refund.transactionId && (
-                                    <div className="mt-4 pt-4 border-t bg-white bg-opacity-50 p-3 rounded">
+                                    <div className="mt-4 pt-4 border-t bg-[#f0f8ff] bg-opacity-50 p-3 rounded">
                                         <p className="text-sm">Transaction ID: <span className="font-mono font-semibold">{refund.transactionId}</span></p>
                                     </div>
                                 )}
